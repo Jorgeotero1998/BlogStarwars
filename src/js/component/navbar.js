@@ -1,39 +1,44 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
-import "../../styles/navbar.css";
-import { Context } from "../store/appContext.js";
+﻿import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Context } from "../store/appContext";
 
-const Navbar = () => {
+export const Navbar = () => {
+const { store, actions } = useContext(Context);
+const [search, setSearch] = useState("");
+const navigate = useNavigate();
 
-	const contexto = useContext(Context);
-	
-	function eliminarFavoritos(nombre) {
-		contexto.actions.deleteFavoritos(nombre);
-		
-	  }
-
-	return (
-		<nav>
-			<header className="container">
-				<Link to="/"><img className="imagen-logo" src="https://download.logo.wine/logo/Star_Wars/Star_Wars-Logo.wine.png" /></Link>
-				<div className="dropdown">
-					<button className="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"data-bs-auto-close="outside" aria-expanded="false">
-						<span>Favorites</span>
-						<span className="favoritos-counter">{contexto.store.favoritos.length}</span>
-					</button>
-					
-					<ul className="dropdown-menu px-2">
-						{contexto.store.favoritos.length === 0 ? "(empty)" : contexto.store.favoritos.map((value, index) => (
-							<li className="dropdown-item" key={index}>
-								<span className="favoritos-name">{value}</span>
-								<i className="fa fa-trash m-2" onClick={()=>eliminarFavoritos(value)}></i>
-							</li>
-						))}
-					</ul>
-				</div>
-			</header>
-		</nav>
-	);
+return (
+<nav className="navbar navbar-light bg-white border-bottom px-5 py-3 sticky-top">
+<Link to="/"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg" style={{ width: "80px" }} /></Link>
+<div className="d-flex gap-3 align-items-center">
+<div className="position-relative">
+<input type="text" className="form-control border-secondary" placeholder="Search..." 
+value={search} onChange={(e) => { setSearch(e.target.value); actions.searchData(e.target.value); }} />
+{store.searchResult.length > 0 && (
+<ul className="list-group position-absolute w-100 mt-1 shadow" style={{zIndex: 1000}}>
+{store.searchResult.map(i => (
+<li key={i.uid} className="list-group-item list-group-item-action pointer" 
+onClick={()=>{navigate("/details/"+i.type+"/"+i.uid); setSearch(""); actions.searchData("");}}>
+{i.name}
+</li>
+))}
+</ul>
+)}
+</div>
+<div className="dropdown">
+<button className="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+Favorites <span className="badge bg-secondary ms-1">{store.favorites.length}</span>
+</button>
+<ul className="dropdown-menu dropdown-menu-end shadow border-0">
+{store.favorites.length === 0 ? <li className="dropdown-item text-muted">(empty)</li> : store.favorites.map((f, i) => (
+<li key={i} className="dropdown-item d-flex justify-content-between align-items-center" style={{minWidth: "200px"}}>
+<Link to={"/details/" + f.type + "/" + f.uid} className="text-decoration-none text-dark text-truncate me-2">{f.name}</Link>
+<i className="fas fa-trash-alt text-dark" style={{ cursor: "pointer" }} onClick={() => actions.toggleFavorite(f)}></i>
+</li>
+))}
+</ul>
+</div>
+</div>
+</nav>
+);
 };
-
-export default Navbar;
